@@ -12,7 +12,10 @@ func TestRequestHeader(t *testing.T) {
 	commonHeader.Set("Content-Type", "application/json")
 	commonHeader.Set("User-Agent", "cool-http-client")
 	clientBuilder.SetHeaders(commonHeader)
-	client := clientBuilder.Build()
+	client := merClient{
+		builder: &clientBuilder,
+		client:  &http.Client{},
+	}
 	customHeader := make(http.Header)
 	customHeader.Set("x-Request-Id", "Abc-123")
 	headers := client.getRequestHeaders(customHeader)
@@ -39,13 +42,13 @@ func TestRequestBody(t *testing.T) {
 	// request body application-json
 	t.Run("Json", func(t *testing.T) {
 		body := struct {
-			Name string `json:"name"`
+			Name     string `json:"name"`
 			LastName string `json:"last_name"`
 		}{
-			Name: "test",
+			Name:     "test",
 			LastName: "test",
 		}
-		
+
 		resp, err := client.getRequestBody("application/json", body)
 
 		if err != nil {
@@ -60,11 +63,11 @@ func TestRequestBody(t *testing.T) {
 	// request body application-xml
 	t.Run("xml", func(t *testing.T) {
 		body := struct {
-			XMLName xml.Name `xml:"rss"`
-			Name string `xml:"name"`
-			LastName string `xml:"last_name"`
+			XMLName  xml.Name `xml:"rss"`
+			Name     string   `xml:"name"`
+			LastName string   `xml:"last_name"`
 		}{
-			Name: "test",
+			Name:     "test",
 			LastName: "test",
 		}
 

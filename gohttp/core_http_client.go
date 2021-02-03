@@ -5,13 +5,17 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"github.com/guillospy92/clientHttp/core"
+	"github.com/guillospy92/clientHttp/gohttp/gohttp_mock"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 )
 
-func (c *merClient) do(method string, url string, headers http.Header, body interface{}) (*http.Response, error) {
+// do trigger to make the request POST, PUT, DELETE, PATCH
+func (c *merClient) do(method string, url string, headers http.Header, body interface{}) (core.ResponseInterface, error) {
 	fullHeaders := c.getRequestHeaders(headers)
 
 	requestBody, err := c.getRequestBody(fullHeaders.Get("Content-type"), body)
@@ -26,34 +30,36 @@ func (c *merClient) do(method string, url string, headers http.Header, body inte
 
 	request.Header = fullHeaders
 
-	return c.getHttpClient().Do(request)
-}
+	response, err := c.getHTTPClient().Do(request)
 
-func (c *merClient) getHttpClient() *http.Client {
-	if c.client != nil {
-		return c.client
+	if err != nil {
+		return nil, err
 	}
 
-	c.client =  &http.Client{
-		Timeout: c.getTimeOut(),
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: c.getMaxIdleConnection(), // maximum open connections
-			ResponseHeaderTimeout: c.getResponseTimeOut(), // limit headers read time response
-			DialContext: (&net.Dialer{
-				Timeout: c.getConnectionTimeOut(),
-			}).DialContext,
-		},
+	defer response.Body.Close()
+
+	responseBody, err := ioutil.ReadAll(response.Body)
+
+	if err != nil {
+		return nil, err
 	}
-	return c.client
+	return &core.Response{
+		StatusCode: response.StatusCode,
+		Status:     response.Status,
+		Headers:    response.Header,
+		Body:       responseBody,
+	}, nil
 }
 
-func (c *merClient) getMaxIdleConnection() int  {
+// getMaxIdleConnection get value of maximum open requests for a client
+func (c *merClient) getMaxIdleConnection() int {
 	if c.builder.maxIdleConnection > 0 {
 		return c.builder.maxIdleConnection
 	}
 	return defaultMaxIdleConnection
 }
 
+// getResponseTimeOut get value of maximum waiting time for a request to respond
 func (c *merClient) getResponseTimeOut() time.Duration {
 	if c.builder.responseTimeOut > 0 {
 		return c.builder.responseTimeOut
@@ -61,6 +67,7 @@ func (c *merClient) getResponseTimeOut() time.Duration {
 	return defaultResponseTimeOut
 }
 
+// getConnectionTimeOut get value of time limit to establish a connection
 func (c *merClient) getConnectionTimeOut() time.Duration {
 	if c.builder.connectionTimeOut > 0 {
 		return c.builder.connectionTimeOut
@@ -68,27 +75,30 @@ func (c *merClient) getConnectionTimeOut() time.Duration {
 	return defaultConnectionTimeOut
 }
 
-func (c *merClient) getTimeOut() time.Duration  {
+// getTimeOut get value of maximum waiting time for a request to respond
+func (c *merClient) getTimeOut() time.Duration {
 	if c.builder.timeOut > 0 {
 		return c.builder.timeOut
 	}
 	return defaultTimeOut
 }
 
+// getRequestBody transform the body according to the application / json key of the headers
 func (c *merClient) getRequestBody(contentType string, body interface{}) ([]byte, error) {
 	if body == nil {
 		return nil, nil
 	}
 	switch contentType {
-	case strings.ToLower("application/json") :
+	case strings.ToLower("application/json"):
 		return json.Marshal(body)
-	case  strings.ToLower("application/xml") :
+	case strings.ToLower("application/xml"):
 		return xml.Marshal(body)
 	default:
 		return json.Marshal(body)
 	}
 }
 
+// getRequestHeaders get the headers set by the builder to create the request
 func (c *merClient) getRequestHeaders(requestHeaders http.Header) http.Header {
 	result := make(http.Header)
 
@@ -106,5 +116,37 @@ func (c *merClient) getRequestHeaders(requestHeaders http.Header) http.Header {
 		}
 	}
 
+	// if attribute user-Agent in builder is different ""
+	if c.builder.userAgent != "" {
+		if result.Get("User-Agent") != "" {
+			return result
+		}
+		result.Set("User-Agent", c.builder.userAgent)
+	}
+
 	return result
+}
+
+// getHTTPClient returns an http client singleton with the previous builder configurations
+func (c *merClient) getHTTPClient() core.HttpClient {
+	// if mock is active in testing
+	if gohttp_mock.MockUpServer.Enabled {
+		return &gohttp_mock.HttpClientMock{}
+	}
+	// client singleton if is initialize
+	if c.client != nil {
+		return c.client
+	}
+	// if client not is initialize return new client
+	c.client = &http.Client{
+		Timeout: c.getTimeOut(),
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost:   c.getMaxIdleConnection(),
+			ResponseHeaderTimeout: c.getResponseTimeOut(),
+			DialContext: (&net.Dialer{
+				Timeout: c.getConnectionTimeOut(),
+			}).DialContext,
+		},
+	}
+	return c.client
 }
