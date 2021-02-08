@@ -109,4 +109,26 @@ func TestRequestBody(t *testing.T) {
 			t.Errorf("Error json not equal to response %v", resp)
 		}
 	})
+
+	t.Run("builder", func(t *testing.T) {
+		builder := NewClient().
+			SetMaxIdleConnection(5).
+			SetConnectionTimeOut(4).
+			SetResponseTimeOut(3).
+			SetTimeOut(4).SetUserAgent("user-Agent")
+		client = merClient{
+			builder: builder,
+		}
+		if client.getMaxIdleConnection() != builder.maxIdleConnection {
+			t.Errorf("Error MaxIdleConnection ")
+		}
+
+		if client.getResponseTimeOut() != builder.responseTimeOut {
+			t.Errorf("Error ResponseTimeOut")
+		}
+
+		if client.getConnectionTimeOut() != builder.timeOut {
+			t.Errorf("Error timeOut")
+		}
+	})
 }

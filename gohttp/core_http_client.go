@@ -31,7 +31,6 @@ func (c *merClient) do(method string, url string, headers http.Header, body inte
 	request.Header = fullHeaders
 
 	response, err := c.getHTTPClient().Do(request)
-
 	if err != nil {
 		return nil, err
 	}

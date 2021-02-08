@@ -32,5 +32,7 @@ func (c *HttpClientMock) Do(request *http.Request) (*http.Response, error) {
 		return &response, nil
 	}
 	mockNoFound := fmt.Sprintf("No Mock find method %s, body %s", request.Method, request.URL.String())
+
+	fmt.Println(1111111111)
 	panic(mockNoFound)
 }

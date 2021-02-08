@@ -34,11 +34,6 @@ func AddMockServer(mock Mock) {
 	MockUpServer.mocks = append(MockUpServer.mocks, &mock)
 }
 
-// FlushMockServer clean the elements of the mock slice
-func FlushMockServer() {
-	MockUpServer.mocks = []*Mock{}
-}
-
 // gets the first item from the mock stack and removes it in turn
 func GetMock() *Mock {
 	mock := MockUpServer.mocks[0]
