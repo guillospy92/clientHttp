@@ -117,7 +117,3 @@ the var response will return the same mock indicate
 ```
 
 
-
-###  Mock:
-
-
