@@ -2,7 +2,7 @@ package core
 
 import "net/http"
 
-// HttpClient gives the do method for http operations
-type HttpClient interface {
+// HTTPClient gives the do method for http operations
+type HTTPClient interface {
 	Do(request *http.Request) (*http.Response, error)
 }

@@ -95,7 +95,7 @@ gohttp_mock.StartMockServer()
 add mock server
 
 create mock
-mock := gohttp_mock.Mock{
+mock := gohttpmock.Mock{
     Method:     http.MethodPost,
     StatusCode: 200,
     Status:     "OK",
@@ -105,10 +105,10 @@ mock := gohttp_mock.Mock{
 },
 
 // add mock
-gohttp_mock.AddMockServer(mock)
+gohttpmock.AddMockServer(mock)
 
 // stop mock server
-gohttp_mock.StopMockServer()
+gohttpmock.StopMockServer()
 
 // execute client
 client := gohttp.NewClient().Build()

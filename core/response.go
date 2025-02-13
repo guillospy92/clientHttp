@@ -5,21 +5,22 @@ import (
 	"net/http"
 )
 
+// ResponseInterface interface iterate with library
 type ResponseInterface interface {
 	GetHeader() http.Header
 	GetStatusCode() int
 	GetStatus() string
 	GetByte() []byte
 	GetString() string
-	UnMarshal(data interface{}) error
+	UnMarshal(data any) error
 }
 
-// abstraction of data from * http.Response
+// Response abstraction of data from * http.Response
 type Response struct {
-	Status     string
-	StatusCode int
 	Headers    http.Header
+	Status     string
 	Body       []byte
+	StatusCode int
 }
 
 // GetHeader get header of response
@@ -47,7 +48,7 @@ func (r *Response) GetString() string {
 	return string(r.Body)
 }
 
-// UnMarshal convert data type interface{} in json struct
-func (r *Response) UnMarshal(data interface{}) error {
+// UnMarshal convert data type any in json struct
+func (r *Response) UnMarshal(data any) error {
 	return json.Unmarshal(r.Body, data)
 }
