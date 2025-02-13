@@ -2,8 +2,10 @@ package gohttp
 
 import (
 	"errors"
+
 	"github.com/guillospy92/clientHttp/core"
-	"github.com/guillospy92/clientHttp/gohttp/gohttp_mock"
+	"github.com/guillospy92/clientHttp/gohttp/gohttpmock"
+
 	"net/http"
 	"testing"
 )
@@ -11,26 +13,26 @@ import (
 // test method post
 func TestPostPutDeletePatchServicePost(t *testing.T) {
 	tests := []struct {
-		name         string
-		wantError    bool
-		wantResponse string
-		mock         gohttp_mock.Mock
-		requestBody  string
-		args         struct {
+		args struct {
 			url         string
 			header      http.Header
 			requestBody string
 		}
+		name         string
+		wantResponse string
+		requestBody  string
+		mock         gohttpmock.Mock
+		wantError    bool
 	}{
 		{
 			name:         "Response Success",
 			wantError:    false,
 			wantResponse: `{"name" : "test", "last_name" : "test"}`,
-			mock: gohttp_mock.Mock{
+			mock: gohttpmock.Mock{
 				Method:     http.MethodPost,
 				StatusCode: 200,
 				Status:     "OK",
-				Url:        "www.example.com",
+				URL:        "www.example.com",
 				Response:   `{"name" : "test", "last_name" : "test"}`,
 				Error:      nil,
 			},
@@ -48,11 +50,11 @@ func TestPostPutDeletePatchServicePost(t *testing.T) {
 			name:         "Response Error",
 			wantError:    true,
 			wantResponse: `{"name" : "test", "last_name" : "test"}`,
-			mock: gohttp_mock.Mock{
+			mock: gohttpmock.Mock{
 				Method:     http.MethodPost,
 				StatusCode: 200,
 				Status:     "OK",
-				Url:        "www.example.com",
+				URL:        "www.example.com",
 				Response:   `{"name" : "test", "last_name" : "test"}`,
 				Error:      errors.New("error response"),
 			},
@@ -70,15 +72,16 @@ func TestPostPutDeletePatchServicePost(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			tt := tt
 			// start mock server
-			gohttp_mock.StartMockServer()
+			gohttpmock.StartMockServer()
 
 			client := NewClient().Build()
 
 			methods := [5]string{"Get", "Post", "Put", "Delete", "Patch"}
 			for _, method := range methods {
 				// add mock in map of the mock server
-				gohttp_mock.AddMockServer(tt.mock)
+				gohttpmock.AddMockServer(tt.mock)
 				var response core.ResponseInterface
 				var err error
 				switch method {
@@ -101,12 +104,11 @@ func TestPostPutDeletePatchServicePost(t *testing.T) {
 
 				// test response if not nil
 				if response != nil && response.GetString() != tt.wantResponse {
-					//fmt.Println(response.GetString(), tt.wantResponse)
 					t.Errorf("test name %v want response %v", tt.name, tt.wantResponse)
 				}
 
 			}
-			gohttp_mock.StopMockServer()
+			gohttpmock.StopMockServer()
 		})
 	}
 }

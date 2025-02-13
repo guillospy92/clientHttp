@@ -7,6 +7,7 @@ import (
 )
 
 func TestRequestHeader(t *testing.T) {
+	t.Parallel()
 	clientBuilder := clientBuilder{}
 	commonHeader := make(http.Header)
 	commonHeader.Set("Content-Type", "application/json")
@@ -41,6 +42,7 @@ func TestRequestBody(t *testing.T) {
 
 	// request body application-json
 	t.Run("Json", func(t *testing.T) {
+		t.Parallel()
 		body := struct {
 			Name     string `json:"name"`
 			LastName string `json:"last_name"`
@@ -62,6 +64,7 @@ func TestRequestBody(t *testing.T) {
 
 	// request body application-xml
 	t.Run("xml", func(t *testing.T) {
+		t.Parallel()
 		body := struct {
 			XMLName  xml.Name `xml:"rss"`
 			Name     string   `xml:"name"`
@@ -84,6 +87,7 @@ func TestRequestBody(t *testing.T) {
 
 	// request body application-xml
 	t.Run("Default", func(t *testing.T) {
+		t.Parallel()
 		body := []string{"body 1", "body 2"}
 		resp, err := client.getRequestBody("", body)
 
@@ -98,7 +102,7 @@ func TestRequestBody(t *testing.T) {
 
 	// request body application-xml
 	t.Run("nil", func(t *testing.T) {
-
+		t.Parallel()
 		resp, err := client.getRequestBody("", nil)
 
 		if err != nil {
@@ -111,6 +115,7 @@ func TestRequestBody(t *testing.T) {
 	})
 
 	t.Run("builder", func(t *testing.T) {
+		t.Parallel()
 		builder := NewClient().
 			SetMaxIdleConnection(5).
 			SetConnectionTimeOut(4).

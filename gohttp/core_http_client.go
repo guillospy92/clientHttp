@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"io"
+	"log"
+
 	"github.com/guillospy92/clientHttp/core"
-	"github.com/guillospy92/clientHttp/gohttp/gohttp_mock"
-	"io/ioutil"
+	"github.com/guillospy92/clientHttp/gohttp/gohttpmock"
+
 	"net"
 	"net/http"
 	"strings"
@@ -15,7 +18,7 @@ import (
 )
 
 // do trigger to make the request POST, PUT, DELETE, PATCH
-func (c *merClient) do(method string, url string, headers http.Header, body interface{}) (core.ResponseInterface, error) {
+func (c *merClient) do(method string, url string, headers http.Header, body any) (core.ResponseInterface, error) {
 	fullHeaders := c.getRequestHeaders(headers)
 
 	requestBody, err := c.getRequestBody(fullHeaders.Get("Content-type"), body)
@@ -35,9 +38,14 @@ func (c *merClient) do(method string, url string, headers http.Header, body inte
 		return nil, err
 	}
 
-	defer response.Body.Close()
+	defer func(body io.ReadCloser) {
+		err := body.Close()
+		if err != nil {
+			log.Printf("error closing request body %v", err)
+		}
+	}(response.Body)
 
-	responseBody, err := ioutil.ReadAll(response.Body)
+	responseBody, err := io.ReadAll(response.Body)
 
 	if err != nil {
 		return nil, err
@@ -83,7 +91,7 @@ func (c *merClient) getTimeOut() time.Duration {
 }
 
 // getRequestBody transform the body according to the application / json key of the headers
-func (c *merClient) getRequestBody(contentType string, body interface{}) ([]byte, error) {
+func (*merClient) getRequestBody(contentType string, body any) ([]byte, error) {
 	if body == nil {
 		return nil, nil
 	}
@@ -126,17 +134,17 @@ func (c *merClient) getRequestHeaders(requestHeaders http.Header) http.Header {
 	return result
 }
 
-// getHTTPClient returns an http client singleton with the previous builder configurations
-func (c *merClient) getHTTPClient() core.HttpClient {
+// getHTTPClient returns a http client singleton with the previous builder configurations
+func (c *merClient) getHTTPClient() core.HTTPClient {
 	// if mock is active in testing
-	if gohttp_mock.MockUpServer.Enabled {
-		return &gohttp_mock.HttpClientMock{}
+	if gohttpmock.MockUpServer.Enabled {
+		return &gohttpmock.HTTPClientMock{}
 	}
-	// client singleton if is initialize
+	// client singleton if is initialized
 	if c.client != nil {
 		return c.client
 	}
-	// if client not is initialize return new client
+	// if client not is initialized return new client
 	c.client = &http.Client{
 		Timeout: c.getTimeOut(),
 		Transport: &http.Transport{

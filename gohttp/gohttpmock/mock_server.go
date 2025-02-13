@@ -1,4 +1,4 @@
-package gohttp_mock
+package gohttpmock
 
 // MockUpServer global variable that lets you know in what state the mockery system is
 var (
@@ -14,10 +14,8 @@ var (
 // since in the mock stack every time a mock is called, it removes the first element of the stack.
 // If a mock is not found in the mock pile, it will launch a panic
 type mockServer struct {
-	// indicates that the mock system is active
+	mocks   []*Mock
 	Enabled bool
-	// pre-populated mock slices from AddMockServer method
-	mocks []*Mock
 }
 
 // StartMockServer it tells the http client core that the mock is activated therefore all the requests made in the Do will go through the mock_client

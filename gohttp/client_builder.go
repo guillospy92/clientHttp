@@ -22,11 +22,11 @@ const (
 // clientBuilder structure that contains the configuration parameters to arm a client, all parameters are optional
 type clientBuilder struct {
 	Header            http.Header
+	userAgent         string
 	timeOut           time.Duration
 	maxIdleConnection int
 	connectionTimeOut time.Duration
 	responseTimeOut   time.Duration
-	userAgent         string
 }
 
 // ClientBuilderInterface contains the necessary methods to build a client
